@@ -189,9 +189,8 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       주문 내역 복사 (레스토랑 전달용)
     </button>
-    <button class="reset-btn" onclick="resetForm()">추가 주문 입력하기</button>
-    <button class="reset-btn" style="margin-top:6px;color:#c0392b;border-color:#e8b4b0;" onclick="resetAllOrders()">전체 초기화 (관리자용)</button>
-  </div>
+    <div id="admin-tap-area" onclick="adminTap()" style="margin-top:10px;text-align:center;cursor:default;height:20px;"></div>
+    <button class="reset-btn" id="admin-reset-btn" style="display:none;margin-top:6px;color:#c0392b;border-color:#e8b4b0;" onclick="resetAllOrders()">전체 초기화 (관리자용)</button>
 </div>
 
 <script>
@@ -311,15 +310,19 @@ async function loadOrders() {
 }
 
 function copyOrders() {
-  const date = new Date().toLocaleDateString('ko-KR');
-  let text = 'Oak & Reed 사전 주문 내역\nCGI Holistic Fitness & Spa · ' + date + '\n';
+  const date = new Date().toLocaleDateString('en-US');
+  let text = 'Oak & Reed — Pre-Order Summary\n';
+  text += 'CGI Holistic Fitness & Spa · July 4, 2025\n';
+  text += '────────────────────────────────────────\n';
+  text += 'Name            Menu\n';
   text += '────────────────────────────────────────\n';
   orders.forEach(o => {
     text += o.name + '  →  ' + o.menu + '\n';
-    if (o.note) text += '   ※ ' + o.note + '\n';
+    if (o.note) text += '   * Special Request: ' + o.note + '\n';
   });
   text += '────────────────────────────────────────\n';
-  text += '총 ' + orders.length + '명\n\n[ 메뉴별 수량 ]\n';
+  text += 'Total: ' + orders.length + ' order(s)\n\n';
+  text += '[ Menu Count by Item ]\n';
   text += '────────────────────────────────────────\n';
   const counts = getMenuCounts();
   Object.entries(counts).sort((a, b) => b[1] - a[1]).forEach(([menu, qty]) => {
@@ -341,6 +344,20 @@ async function resetAllOrders() {
   await api({ action: 'resetOrders' });
   orders = [];
   document.getElementById('summary-section').style.display = 'none';
+}
+
+let adminTapCount = 0;
+let adminTapTimer = null;
+
+function adminTap() {
+  adminTapCount++;
+  clearTimeout(adminTapTimer);
+  if (adminTapCount >= 5) {
+    document.getElementById('admin-reset-btn').style.display = 'block';
+    adminTapCount = 0;
+  } else {
+    adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 2000);
+  }
 }
 
 loadOrders();
