@@ -178,10 +178,10 @@
   <div class="summary-section" id="summary-section">
     <div class="summary-card">
       <div class="summary-title">Oak & Reed · July 4, 2025 · CGI Holistic Fitness & Spa</div>
-      <div class="summary-header">📋 전체 주문 내역</div>
+      <div class="summary-header">Pre-Order Summary</div>
       <div class="summary-sub" id="summary-count"></div>
       <hr class="summary-divider">
-      <div class="order-header-row"><span>이름</span><span>주문 메뉴</span><span>특별 요청</span></div>
+      <div class="order-header-row"><span>Name</span><span>Menu</span><span>Special Request</span></div>
       <div id="order-list"></div>
       <div id="menu-count-block"></div>
     </div>
@@ -271,7 +271,7 @@ function getMenuCounts() {
 }
 
 function renderSummary() {
-  document.getElementById('summary-count').textContent = '총 ' + orders.length + '명 주문 완료';
+  document.getElementById('summary-count').textContent = 'Total ' + orders.length + ' order(s)';
   document.getElementById('order-list').innerHTML = orders.map(o =>
     '<div class="order-row">' +
     '<div class="order-name-col">' + o.name + '</div>' +
@@ -292,7 +292,7 @@ function renderSummary() {
 
   document.getElementById('menu-count-block').innerHTML =
     '<hr class="summary-divider" style="margin:14px 0 10px;">' +
-    '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#c8a96e;margin-bottom:8px;">메뉴별 수량</div>' +
+    '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#c8a96e;margin-bottom:8px;">Menu Count by Item</div>' +
     countHTML;
 
   document.getElementById('summary-section').style.display = 'block';
