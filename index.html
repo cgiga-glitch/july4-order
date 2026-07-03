@@ -310,23 +310,18 @@ async function loadOrders() {
 }
 
 function copyOrders() {
-  const date = new Date().toLocaleDateString('en-US');
   let text = 'Oak & Reed — Pre-Order Summary\n';
-  text += 'CGI Holistic Fitness & Spa · July 4, 2025\n';
-  text += '────────────────────────────────────────\n';
-  text += 'Name            Menu\n';
-  text += '────────────────────────────────────────\n';
+  text += 'CGI Holistic Fitness & Spa · July 4, 2025\n\n';
+  text += 'Name  /  Menu\n\n';
   orders.forEach(o => {
     text += o.name + '  →  ' + o.menu + '\n';
     if (o.note) text += '   * Special Request: ' + o.note + '\n';
   });
-  text += '────────────────────────────────────────\n';
-  text += 'Total: ' + orders.length + ' order(s)\n\n';
-  text += '[ Menu Count by Item ]\n';
-  text += '────────────────────────────────────────\n';
+  text += '\nTotal: ' + orders.length + ' order(s)\n\n';
+  text += 'Menu Count by Item\n\n';
   const counts = getMenuCounts();
   Object.entries(counts).sort((a, b) => b[1] - a[1]).forEach(([menu, qty]) => {
-    text += menu + '  × ' + qty + '\n';
+    text += menu + '  ×' + qty + '\n';
   });
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('copy-btn');
