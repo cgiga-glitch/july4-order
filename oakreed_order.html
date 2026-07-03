@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oak & Reed — 메뉴 사전 주문</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f5f0; color: #1a1a1a; min-height: 100vh; }
+
+  .hero { background: #1a1a1a; color: #fff; text-align: center; padding: 2rem 1rem 1.5rem; }
+  .hero-sub { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+  .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .hero-divider { width: 40px; height: 1px; background: #c8a96e; margin: 12px auto; }
+  .hero p { font-size: 13px; color: #aaa; }
+
+  .wrap { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+  .name-card { background: #fff; border-radius: 14px; border: 1px solid #e8e8e8; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+  .name-card label { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #888; display: block; margin-bottom: 8px; }
+  .name-card input { width: 100%; height: 44px; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 0 14px; font-size: 15px; color: #1a1a1a; outline: none; transition: border-color 0.15s; background: #fafafa; }
+  .name-card input:focus { border-color: #c8a96e; background: #fff; }
+
+  .section-header { display: flex; align-items: center; gap: 12px; margin: 1.5rem 0 10px; }
+  .section-title { font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #c8a96e; white-space: nowrap; }
+  .section-line { flex: 1; height: 1px; background: #e0d9ce; }
+
+  .menu-item { background: #fff; border-radius: 12px; border: 1.5px solid #ebe8e2; padding: 14px 16px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; display: flex; align-items: flex-start; gap: 12px; }
+  .menu-item:hover { border-color: #c8a96e; background: #fdf9f3; }
+  .menu-item.selected { border-color: #c8a96e; background: #fdf9f3; }
+  .menu-check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #ddd; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; transition: all 0.15s; }
+  .menu-item.selected .menu-check { background: #c8a96e; border-color: #c8a96e; }
+  .check-icon { display: none; }
+  .menu-item.selected .check-icon { display: block; }
+  .menu-body { flex: 1; }
+  .menu-name { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 3px; line-height: 1.3; }
+  .menu-name .veg { font-size: 11px; color: #4a9e6b; font-weight: 500; margin-left: 4px; }
+  .menu-desc { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 4px; }
+  .menu-price { font-size: 13px; font-weight: 600; color: #c8a96e; }
+  .menu-note { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+  .add-note { margin-top: 1.5rem; }
+  .add-note label { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #888; display: block; margin-bottom: 8px; }
+  .add-note textarea { width: 100%; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #1a1a1a; outline: none; resize: none; background: #fff; transition: border-color 0.15s; font-family: inherit; }
+  .add-note textarea:focus { border-color: #c8a96e; }
+
+  .submit-wrap { margin-top: 1.5rem; }
+  .submit-btn { width: 100%; height: 50px; background: #1a1a1a; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; letter-spacing: 0.02em; }
+  .submit-btn:hover { background: #333; }
+  .msg { font-size: 13px; color: #c0392b; margin-top: 8px; min-height: 18px; }
+  .msg.ok { color: #2e7d32; }
+
+  /* Summary */
+  .summary-section { display: none; margin-top: 2rem; }
+  .summary-card { background: #1a1a1a; color: #fff; border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+  .summary-title { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #c8a96e; margin-bottom: 12px; }
+  .summary-header { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .summary-sub { font-size: 13px; color: #aaa; margin-bottom: 1rem; }
+  .summary-divider { border: none; border-top: 1px solid #333; margin: 12px 0; }
+  .order-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .order-name-col { font-size: 13px; font-weight: 600; color: #fff; min-width: 80px; }
+  .order-menu-col { font-size: 13px; color: #ccc; flex: 1; padding: 0 12px; }
+  .order-note-col { font-size: 12px; color: #888; font-style: italic; }
+  .order-header-row { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #666; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #333; }
+
+  .copy-btn { width: 100%; height: 46px; background: #c8a96e; color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .copy-btn:hover { background: #b8994e; }
+  .copy-btn.copied { background: #2e7d32; }
+
+  .reset-btn { width: 100%; margin-top: 10px; height: 40px; background: none; border: 1.5px solid #e0e0e0; border-radius: 12px; font-size: 13px; color: #888; cursor: pointer; transition: all 0.15s; }
+  .reset-btn:hover { border-color: #1a1a1a; color: #1a1a1a; }
+
+  .gluten { font-size: 11px; color: #888; margin-top: 6px; display: block; }
+  .allergen { font-size: 11px; color: #c0392b; margin-top: 2px; display: block; }
+
+  .order-count-badge { display: inline-flex; align-items: center; justify-content: center; background: #c8a96e; color: #fff; font-size: 11px; font-weight: 700; border-radius: 99px; padding: 2px 8px; margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-sub">CGI Holistic Fitness & Spa · July 4th</div>
+  <h1>Oak & Reed</h1>
+  <div class="hero-divider"></div>
+  <p>사전 메뉴 주문 · 45-53 North St, Middletown, NY</p>
+</div>
+
+<div class="wrap">
+  <div id="order-form">
+    <div class="name-card">
+      <label>이름 Name</label>
+      <input type="text" id="voter-name" placeholder="이름을 입력하세요 (예: James Heo)" maxlength="30" />
+    </div>
+
+    <!-- LIGHTER FARE -->
+    <div class="section-header">
+      <div class="section-title">Lighter Fare</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Oysters on the Half Shell', '20/20.60')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Oysters on the Half Shell</div>
+        <div class="menu-desc">Mignonette & Cocktail Sauce (Ask Server for Selection)</div>
+        <div class="menu-price">Market Price</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'O&R Cornbread (v)', '8/8.24')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">O&R Cornbread <span class="veg">(V)</span></div>
+        <div class="menu-desc">Rhubarb Butter</div>
+        <div class="menu-price">$8 / $8.24</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Korean Fried Broccoli (v)', '12/12.36')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Korean Fried Broccoli <span class="veg">(V)</span></div>
+        <div class="menu-desc">Gochujang Chili | Sesame | Scallion</div>
+        <div class="menu-price">$12 / $12.36</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Chicken Liver Pâté', '10/10.30')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Chicken Liver Pâté</div>
+        <div class="menu-desc">Bacon Jam | Giardiniera | Toasted Sourdough</div>
+        <div class="menu-price">$10 / $10.30</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Burrata (v)', '18/18.54')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Burrata <span class="veg">(V)</span></div>
+        <div class="menu-desc">Peach Gazpacho | Sungold Tomatoes | Prosciutto</div>
+        <div class="menu-price">$18 / $18.54</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Grilled Vietnamese Wings', '14/14.42')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Grilled Vietnamese Wings</div>
+        <div class="menu-desc">Fish Sauce Caramel | Peanuts | Mint | Pickled Chili</div>
+        <div class="menu-price">$14 / $14.42</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Tuna Carpaccio', '20/20.60')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Tuna Carpaccio</div>
+        <div class="menu-desc">Wasabi "Aguachilli" | Cara Cara Orange | Ginger | Sesame</div>
+        <div class="menu-price">$20 / $20.60</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Beer Battered Halloumi (v)', '16/16.48')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Beer Battered Halloumi <span class="veg">(V)</span></div>
+        <div class="menu-desc">Strawberry Sweet and Sour | Almond</div>
+        <div class="menu-price">$16 / $16.48</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'PEI Mussels', '20/20.60')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">PEI Mussels</div>
+        <div class="menu-desc">Pernod | Saffron | Tomato | Fennel</div>
+        <div class="menu-price">$20 / $20.60</div>
+      </div>
+    </div>
+
+    <!-- SALADS -->
+    <div class="section-header">
+      <div class="section-title">Salads</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Roasted Beet Salad (v)', '14/14.42')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Roasted Beet Salad <span class="veg">(V)</span></div>
+        <div class="menu-desc">Pumpkin Seed Pesto | Feta | Blackberries | Thyme Vinaigrette</div>
+        <div class="menu-price">$14 / $14.42</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Stone Fruit Salad (v)', '16/16.48')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Stone Fruit Salad <span class="veg">(V)</span></div>
+        <div class="menu-desc">Goat Cheese | Balsamic | Arugula</div>
+        <div class="menu-price">$16 / $16.48</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Mediterranean Grain Bowl (v)', '16/16.48')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Mediterranean Grain Bowl <span class="veg">(V)</span></div>
+        <div class="menu-desc">Einkorn | Quinoa | Cucumber | Tomato | Sweety Drop Peppers | Chickpeas | Feta | Lemon-Tahini Vinaigrette</div>
+        <div class="menu-price">$16 / $16.48</div>
+        <div class="menu-note">Add: Chicken $10.35 | Salmon $18.54 | Shrimp $14.42</div>
+      </div>
+    </div>
+
+    <!-- BRUNCH -->
+    <div class="section-header">
+      <div class="section-title">Brunch</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Chicken & Waffles', '20/20.60')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Chicken & Waffles</div>
+        <div class="menu-desc">O&R Fried Chicken | Belgian Waffle | Maple Syrup</div>
+        <div class="menu-price">$20 / $20.60</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Eggs Benedict', '14/14.42')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Eggs Benedict</div>
+        <div class="menu-desc">Homemade English Muffin | Canadian Bacon | Hollandaise</div>
+        <div class="menu-price">$14 / $14.42</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Lower East Side Benedict', '18/18.54')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Lower East Side Benedict</div>
+        <div class="menu-desc">Smoked Salmon | Homemade English Muffin | Hollandaise</div>
+        <div class="menu-price">$18 / $18.54</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Southwest Chorizo Bowl', '16/16.48')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Southwest Chorizo Bowl</div>
+        <div class="menu-desc">Sweet Potato | Jalapeno | Tomatillo | Fried Eggs</div>
+        <div class="menu-price">$16 / $16.48</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Monte Cristo', '16/16.48')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Monte Cristo</div>
+        <div class="menu-desc">Ham | Turkey | Swiss</div>
+        <div class="menu-price">$16 / $16.48</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'Buttermilk Pancakes (v)', '16/16.48')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">Buttermilk Pancakes <span class="veg">(V)</span></div>
+        <div class="menu-desc">Miso-Honey | Macerated Berries | Whipped Honey Butter</div>
+        <div class="menu-price">$16 / $16.48</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'O&R 10 oz Burger', '18/18.54')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">O&R 10 oz Burger</div>
+        <div class="menu-desc">LTO | Thrice Cooked "Chips"</div>
+        <div class="menu-price">$18 / $18.54</div>
+        <div class="menu-note">Add: Swiss/American/Cheddar $0.50 | Caramelized Onion $0.50 | Caramelized Mushrooms $0.50 | Fried Egg $1.50 | Bacon $1.50 | Charred Jalapeño $0.50 | Avocado $3</div>
+      </div>
+    </div>
+
+    <div class="menu-item" onclick="toggleItem(this, 'O&R Fried Chicken Sandwich', '16/16.48')">
+      <div class="menu-check"><svg class="check-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="menu-body">
+        <div class="menu-name">O&R Fried Chicken Sandwich</div>
+        <div class="menu-desc">Fried Chicken | Chipotle Mayo | Cabbage Slaw</div>
+        <div class="menu-price">$16 / $16.48</div>
+        <div class="menu-note">Sandwiches with Choice of Side Salad or Fries · Can be made Gluten Free on Request</div>
+      </div>
+    </div>
+
+    <div class="add-note">
+      <label>특별 요청 / Special Request</label>
+      <textarea id="special-note" rows="3" placeholder="알레르기, 변경 요청 등 (예: no onion, gluten free 등)"></textarea>
+      <span class="allergen">⚠️ 알레르기: Seafood, Shellfish, Eggs May Increase Risk of Foodborne Illness</span>
+      <span class="gluten">* 일부 메뉴는 Gluten Free 가능 — 요청 시 서버에게 알려주세요.</span>
+    </div>
+
+    <div class="submit-wrap">
+      <button class="submit-btn" onclick="submitOrder()">주문 확정</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-section" id="summary-section">
+    <div class="summary-card">
+      <div class="summary-title">Oak & Reed · July 4, 2025 · CGI Holistic Fitness & Spa</div>
+      <div class="summary-header">📋 전체 주문 내역</div>
+      <div class="summary-sub" id="summary-count"></div>
+      <hr class="summary-divider">
+      <div class="order-header-row">
+        <span>이름</span>
+        <span>주문 메뉴</span>
+        <span>특별 요청</span>
+      </div>
+      <div id="order-list"></div>
+      <div id="menu-count-block"></div>
+    </div>
+    <button class="copy-btn" id="copy-btn" onclick="copyOrders()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      주문 내역 복사 (레스토랑 전달용)
+    </button>
+    <button class="reset-btn" onclick="resetAll()">추가 주문 입력하기</button>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7OLVKqvj_AdhVx92v3OyQk8BnjNn1K4QDzX0MwqhFbmne7rF70vkPr-X6psISOxCUCA/exec';
+let orders = [];
+let selectedItem = null;
+let selectedName = '';
+let selectedPrice = '';
+
+function api(params) {
+  const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  return fetch(url, { method: 'POST', body: JSON.stringify(params), headers: { 'Content-Type': 'text/plain' } })
+    .then(r => r.json());
+}
+
+function setLoading(on) {
+  document.querySelector('.submit-btn').disabled = on;
+  document.querySelector('.submit-btn').textContent = on ? '처리 중...' : '주문 확정';
+}
+
+function toggleItem(el, name, price) {
+  document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('selected'));
+  if (selectedItem === el) {
+    selectedItem = null; selectedName = ''; selectedPrice = '';
+  } else {
+    el.classList.add('selected');
+    selectedItem = el; selectedName = name; selectedPrice = price;
+  }
+}
+
+async function submitOrder() {
+  const name = document.getElementById('voter-name').value.trim();
+  const note = document.getElementById('special-note').value.trim();
+  if (!name) { showMsg('이름을 입력해 주세요.', 'err'); return; }
+  if (!selectedItem) { showMsg('메뉴를 선택해 주세요.', 'err'); return; }
+  setLoading(true);
+  showMsg('주문 중...', '');
+  try {
+    const res = await api({ action: 'submitOrder', name, menu: selectedName, note });
+    if (res.status === 'ok') {
+      showMsg(`${name}님 주문 완료!`, 'ok');
+      document.getElementById('voter-name').value = '';
+      document.getElementById('special-note').value = '';
+      document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('selected'));
+      selectedItem = null; selectedName = ''; selectedPrice = '';
+      await loadOrders();
+    } else if (res.status === 'duplicate') {
+      showMsg(`${name}님은 이미 주문하셨습니다.`, 'err');
+    } else {
+      showMsg('오류가 발생했습니다. 다시 시도해 주세요.', 'err');
+    }
+  } catch(e) {
+    showMsg('연결 오류. 다시 시도해 주세요.', 'err');
+  }
+  setLoading(false);
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg' + (type === 'ok' ? ' ok' : '');
+}
+
+function getMenuCounts() {
+  const counts = {};
+  orders.forEach(o => { counts[o.menu] = (counts[o.menu] || 0) + 1; });
+  return counts;
+}
+
+function renderSummary() {
+  document.getElementById('summary-count').textContent = `총 ${orders.length}명 주문 완료`;
+
+  document.getElementById('order-list').innerHTML = orders.map(o => `
+    <div class="order-row">
+      <div class="order-name-col">${o.name}</div>
+      <div class="order-menu-col">${o.menu}</div>
+      <div class="order-note-col">${o.note || '—'}</div>
+    </div>
+  `).join('<hr class="summary-divider">');
+
+  const counts = getMenuCounts();
+  const countHTML = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([menu, qty]) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #2a2a2a;">
+        <span style="font-size:13px;color:#ccc;">${menu}</span>
+        <span style="font-size:13px;font-weight:700;color:#c8a96e;background:#2a2a2a;border-radius:99px;padding:2px 10px;">×${qty}</span>
+      </div>`).join('');
+
+  document.getElementById('menu-count-block').innerHTML = `
+    <hr class="summary-divider" style="margin:14px 0 10px;">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#c8a96e;margin-bottom:8px;">메뉴별 수량</div>
+    ${countHTML}
+  `;
+
+  document.getElementById('summary-section').style.display = 'block';
+}
+
+async function loadOrders() {
+  try {
+    const res = await api({ action: 'getOrders' });
+    if (res.status === 'ok') {
+      orders = res.orders;
+      if (orders.length > 0) renderSummary();
+      else document.getElementById('summary-section').style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+function copyOrders() {
+  const date = new Date().toLocaleDateString('ko-KR');
+  let text = `Oak & Reed 사전 주문 내역
+CGI Holistic Fitness & Spa · ${date}
+`;
+  text += '─'.repeat(40) + '
+';
+  text += `${'이름'.padEnd(12)}메뉴
+`;
+  text += '─'.repeat(40) + '
+';
+  orders.forEach(o => {
+    text += `${o.name.padEnd(12)}${o.menu}
+`;
+    if (o.note) text += `${''.padEnd(12)}※ ${o.note}
+`;
+  });
+  text += '─'.repeat(40) + '
+';
+  text += `총 ${orders.length}명
+
+`;
+  text += '[ 메뉴별 수량 ]
+';
+  text += '─'.repeat(40) + '
+';
+  const counts = getMenuCounts();
+  Object.entries(counts).sort((a, b) => b[1] - a[1]).forEach(([menu, qty]) => {
+    text += `${menu}  × ${qty}
+`;
+  });
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.classList.add('copied');
+    btn.textContent = '✓ 복사 완료!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 주문 내역 복사 (레스토랑 전달용)';
+    }, 2500);
+  });
+}
+
+function resetAll() {
+  document.getElementById('voter-name').value = '';
+  document.getElementById('special-note').value = '';
+  document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('selected'));
+  selectedItem = null; selectedName = ''; selectedPrice = '';
+  showMsg('', '');
+}
+
+async function resetAllOrders() {
+  if (!confirm('전체 주문을 초기화하시겠습니까?')) return;
+  await api({ action: 'resetOrders' });
+  orders = [];
+  document.getElementById('summary-section').style.display = 'none';
+}
+
+// 초기 로드
+loadOrders();
+setInterval(loadOrders, 15000);
+</script>
+</body>
+</html>
